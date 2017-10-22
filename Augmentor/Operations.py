@@ -29,6 +29,7 @@ import math
 from math import floor, ceil
 
 import numpy as np
+from scipy import ndimage
 # from skimage import img_as_ubyte
 # from skimage import transform
 
@@ -1433,7 +1434,7 @@ class ZoomRandom(Operation):
          performed when it is invoked in the pipeline. 
         :param percentage_area: A value between 0.1 and 1 that represents the
          area that will be cropped, with 1 meaning the entire area of the
-         image will be cropped and 0.1 mean 10% of the area of the image 
+         image will be cropped and 0.1 mean 10% of the area of the image
          will be cropped, before zooming.
         :param randomise: If ``True``, uses the :attr:`percentage_area` as an 
          upper bound, and randomises the zoom level from between 0.1 and 
@@ -1567,6 +1568,86 @@ class RandomErasing(Operation):
         image.paste(rectangle, (random_position_x, random_position_y))
 
         return image
+
+
+class RandomShift(Operation):
+    """
+    This class performs a random shift on the image.
+    """
+    def __init__(self, probability, min_x_shift, max_x_shift,
+                 min_y_shift, max_y_shift):
+        """
+        The final shift will be a random number between min and max shift.
+
+        :param probability: A value between 0 and 1 representing the
+         probability that the operation should be performed.
+        :param min_x_shift: the minimum shift in this axis, as a fraction of image size
+        :param max_x_shift: the maximum shift in this axis, as a fraction of image size
+        :param min_y_shift: the minimum shift in this axis, as a fraction of image size
+        :param max_y_shift: the maximum shift in this axis, as a fraction of image size
+        """
+        Operation.__init__(self, probability)
+        self.min_x_shift = min_x_shift
+        self.max_x_shift = max_x_shift
+        self.min_y_shift = min_y_shift
+        self.max_y_shift = max_y_shift
+
+    def perform_operation(self, image):
+        """
+        Shifts the image by a random amount.
+
+        :param image: The image to perform dilation on.
+        :type image: PIL.Image
+        :return: a shifted image
+        """
+        w, h = image.size
+        x_shift = np.random.uniform(low=self.min_x_shift * w,
+                                    high=self.max_x_shift * w)
+        y_shift = np.random.uniform(low=self.min_y_shift * h,
+                                    high=self.max_y_shift * h)
+        a = 1
+        b = 0
+        c = x_shift  # left/right (i.e. 5/-5)
+        d = 0
+        e = 1
+        f = y_shift  # up/down (i.e. 5/-5)
+        affine_params = (a,b,c,d,e,f)
+        # translate = image.transform(image.size, Image.AFFINE, (a, b, c, d, e, f))
+        translate = image.transform(image.size, Image.AFFINE, affine_params)
+        # Calculate the size after cropping
+        # size = (translate.size[0] - x_shift, translate.size[1] - y_shift)
+        # Crop to the desired size
+        # translate = translate.transform(size, Image.EXTENT,
+        #                                 (0, 0, size[0], size[1]))
+        return translate
+
+class Dilate(Operation):
+    """
+    This class performs a dilation on the given image. It expects a
+    1-dimensional binary mask.
+    """
+    def __init__(self, probability, dilate_structure):
+        """
+        :param probability: A value between 0 and 1 representing the
+         probability that the operation should be performed.
+        :param dilate_structure: the dilattion kernel to be applied
+        """
+        Operation.__init__(self, probability)
+        self.dilate_structure = dilate_structure
+
+    def perform_operation(self, image):
+        """
+        performs the dilation on the given image.
+
+        :param image: The image to perform dilation on.
+        :type image: PIL.Image
+        :return: a dilate image.
+        """
+        binary_im = np.asarray(image).astype('uint8') > 0
+        dilated = ndimage.binary_dilation(binary_im[:, :, 0],
+                                          self.dilate_structure)
+        multi_channel = np.repeat(dilated[:, :, np.newaxis], 3, axis=2)
+        return Image.fromarray(np.uint8(255*multi_channel))
 
 
 class Custom(Operation):
