@@ -1347,3 +1347,52 @@ class Pipeline(object):
             raise ValueError("The rectangle_area must be between 0.1 and 1.")
         else:
             self.add_operation(RandomErasing(probability=probability, rectangle_area=rectangle_area))
+
+    def random_shift(self, probability, min_x_shift, max_x_shift,
+                 min_y_shift, max_y_shift):
+        """
+        This operation performs a random shift on the image. The final is a
+         random number between min and max shift.
+
+        :param probability: A value between 0 and 1 representing the
+         probability that the operation should be performed.
+        :param min_x_shift: the minimum shift in this axis, as a fraction of image size
+        :param max_x_shift: the maximum shift in this axis, as a fraction of image size
+        :param min_y_shift: the minimum shift in this axis, as a fraction of image size
+        :param max_y_shift: the maximum shift in this axis, as a fraction of image size
+        :return: None
+        """
+        if not 0 < probability <= 1:
+            raise ValueError(Pipeline._probability_error_text)
+        else:
+            self.add_operation(RandomShift(probability=probability,
+                                           min_x_shift=min_x_shift,
+                                           max_x_shift=max_x_shift,
+                                           min_y_shift=min_y_shift,
+                                           max_y_shift=max_y_shift))
+
+    def dilate(self, probability, dilate_structure):
+        """
+        This operation performs a dilation on the given image and expects a
+        1-dimensional binary mask.
+
+        :param probability: A value between 0 and 1 representing the
+         probability that the operation should be performed.
+        :param dilate_structure: the dilattion kernel to be applied
+        :return: None
+        """
+        if not 0 < probability <= 1:
+            raise ValueError(Pipeline._probability_error_text)
+        else:
+            self.add_operation(Dilate(probability=probability,
+                                      dilate_structure=dilate_structure))
+
+    def custom(self, probability, custom_function, **function_arguments):
+        if not 0 < probability <= 1:
+            raise ValueError(Pipeline._probability_error_text)
+        else:
+            self.add_operation(Custom(probability,
+                                      custom_function,
+                                      **function_arguments))
+
+
