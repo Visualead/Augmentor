@@ -112,6 +112,8 @@ class Pipeline(object):
         :return: None
         """
 
+        self.source_directory = source_directory
+
         # Check if the source directory for the original images to augment exists at all
         if not os.path.exists(source_directory):
             raise IOError("The source directory you specified does not exist.")
@@ -198,8 +200,18 @@ class Pipeline(object):
                 # TODO: Fix this!
                 if image.mode != "RGB":
                     image = image.convert("RGB")
-                file_name = augmentor_image.class_label + "_" + file_name
-                image.save(os.path.join(augmentor_image.output_directory, file_name), self.save_format)
+                # Original pathing:
+                # file_name = augmentor_image.class_label + "_" + file_name
+                # image.save(os.path.join(augmentor_image.output_directory,
+                #                         file_name), self.save_format)
+
+                # Changed pathing to fit gygo and msk
+                relative_path = os.path.relpath(augmentor_image.image_path,
+                                                self.source_directory)
+                file_name_msk = '-'.join([os.path.splitext(
+                    os.path.basename(relative_path))[0], file_name])
+                image.save(os.path.join(
+                    augmentor_image.output_directory, file_name_msk))
             except IOError:
                 print("Error writing %s." % file_name)
 
