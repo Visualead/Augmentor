@@ -313,6 +313,12 @@ class Pipeline(object):
             yield self._execute(self.augmentor_images[im_index], save_to_disk=False), \
                 self.augmentor_images[im_index].class_label_int
 
+    def image_generator_only_image(self):
+        while True:
+            im_index = random.randint(0, len(self.augmentor_images)-1)  # Fix for issue 52.
+            yield self._execute(self.augmentor_images[im_index], save_to_disk=False)
+
+
     def keras_generator(self, batch_size, image_data_format="channels_last"):
         """
         Returns an image generator that will sample from the current pipeline
