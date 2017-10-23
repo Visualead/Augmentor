@@ -127,7 +127,13 @@ class Pipeline(object):
         abs_output_directory = os.path.join(source_directory, output_directory)
 
         # Scan the directory that user supplied.
-        self.augmentor_images, self.class_labels = scan(source_directory, abs_output_directory)
+        if os.path.splitext(source_directory)[1].upper() in self._valid_formats:
+            self.augmentor_images = source_directory
+            self.class_labels = self.os.path.basename(
+                os.path.dirname(source_directory))
+        else:
+            self.augmentor_images, self.class_labels = scan(
+                source_directory, abs_output_directory)
 
         # Make output directory/directories
         if len(self.class_labels) <= 1:  # This may be 0 in the case of a folder generated
