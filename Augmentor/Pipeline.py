@@ -128,9 +128,10 @@ class Pipeline(object):
 
         # Scan the directory that user supplied.
         if os.path.splitext(source_directory)[1].upper() in self._valid_formats:
+            # means the input is a single image
             self.augmentor_images = source_directory
-            self.class_labels = self.os.path.basename(
-                os.path.dirname(source_directory))
+            self.class_labels = os.path.basename(os.path.dirname(
+              source_directory))
         else:
             self.augmentor_images, self.class_labels = scan(
                 source_directory, abs_output_directory)
