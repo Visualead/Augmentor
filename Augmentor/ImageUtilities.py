@@ -182,7 +182,6 @@ def extract_paths_and_extensions(image_path):
 
 
 def scan(source_directory, output_directory):
-
     abs_output_directory  = os.path.abspath(output_directory)
     files_and_directories = glob.glob(os.path.join(os.path.abspath(source_directory), '*'))
 
@@ -214,6 +213,12 @@ def scan(source_directory, output_directory):
             a.categorical_label = [label_counter]
             augmentor_images.append(a)
 
+            class_labels.append((label_counter, parent_directory_name))
+
+        # in case the input is a single image path
+        if not augmentor_images and not os.path.isdir(source_directory):
+            augmentor_images.append(AugmentorImage(
+                image_path=source_directory, output_directory=abs_output_directory))
             class_labels.append((label_counter, parent_directory_name))
 
         return augmentor_images, class_labels
