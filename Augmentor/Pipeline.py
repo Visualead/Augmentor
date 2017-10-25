@@ -86,7 +86,9 @@ class Pipeline(object):
                            ground_truth_directory=None,
                            ground_truth_output_directory=output_directory)
 
-    def _populate(self, source_directory, output_directory, ground_truth_directory, ground_truth_output_directory):
+    def _populate(self, source_directory, output_directory,
+                  ground_truth_directory, ground_truth_output_directory,
+                  verbose=False):
         """
         Private method for populating member variables with AugmentorImage
         objects for each of the images found in the source directory
@@ -161,9 +163,9 @@ class Pipeline(object):
                 self.augmentor_images.remove(augmentor_image)
 
         # Finally, we will print some informational messages.
-
-        sys.stdout.write("Initialised with %s image(s) found.\n" % len(self.augmentor_images))
-        sys.stdout.write("Output directory set to %s." % abs_output_directory)
+        if verbose:
+          sys.stdout.write("Initialised with %s image(s) found.\n" % len(self.augmentor_images))
+          sys.stdout.write("Output directory set to %s." % abs_output_directory)
 
         #print("Initialised with %s image(s) found in selected directory." % len(self.augmentor_images))
         #print("Output directory set to %s." % abs_output_directory)
