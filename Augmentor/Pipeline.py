@@ -1408,6 +1408,12 @@ class Pipeline(object):
             self.add_operation(Dilate(probability=probability,
                                       dilate_structure=dilate_structure))
 
+    def msk_operation_temp(self, probability):
+      if not 0 < probability <= 1:
+        raise ValueError(Pipeline._probability_error_text)
+      else:
+        self.add_operation(MSKOperationTemp(probability=probability))
+
     def custom(self, probability, custom_function, **function_arguments):
         if not 0 < probability <= 1:
             raise ValueError(Pipeline._probability_error_text)

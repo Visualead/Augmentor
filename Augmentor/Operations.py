@@ -1649,6 +1649,100 @@ class Dilate(Operation):
         multi_channel = np.repeat(dilated[:, :, np.newaxis], 3, axis=2)
         return Image.fromarray(np.uint8(255*multi_channel))
 
+class MSKOperationTemp(Operation):
+
+  def __init__(self, probability):
+    Operation.__init__(self, probability)
+
+  def perform_operation(self, image):
+    from skimage import transform as skimt
+    USE_NONLIN_T = True
+
+    im_size = image.shape
+    # processed_mask = label*255
+    # processed_mask = processed_mask - 127
+    # perform mask augmentation
+    if np.random.random() > 0.5:
+      scale_rnd = 1.05
+    else:
+      scale_rnd = 0.95
+
+    shift_factor = 0.05
+    if np.random.random() > 0.5:
+      shiftX_rnd = shift_factor * im_size[1]
+    else:
+      shiftX_rnd = -shift_factor * im_size[1]
+    if np.random.random() > 0.5:
+      shiftY_rnd = shift_factor * im_size[0]
+    else:
+      shiftY_rnd = -shift_factor * im_size[0]
+
+    # rot_rnd =
+    # rescale:
+    processed_mask_s = skimt.rescale(
+      np.array(image[0, :, :, 0], dtype=np.float), scale_rnd)
+    p_size = processed_mask_s.shape
+    processed_mask_aug = np.zeros_like(image[0, :, :, 0])
+    if scale_rnd > 1:
+      H1 = int(p_size[0] / 2 - np.floor(float(im_size[0]) / 2))
+      H2 = int(p_size[0] / 2 + np.ceil(float(im_size[0]) / 2))
+      W1 = int(p_size[1] / 2 - np.floor(float(im_size[1]) / 2))
+      W2 = int(p_size[1] / 2 + np.ceil(float(im_size[1]) / 2))
+      processed_mask_aug = processed_mask_s[H1:H2, W1:W2]
+    else:
+      H1 = int(im_size[0] / 2 - np.floor(float(p_size[0]) / 2))
+      H2 = int(im_size[0] / 2 + np.ceil(float(p_size[0]) / 2))
+      W1 = int(im_size[1] / 2 - np.floor(float(p_size[1]) / 2))
+      W2 = int(im_size[1] / 2 + np.ceil(float(p_size[1]) / 2))
+      processed_mask_aug[H1:H2, W1:W2] = processed_mask_s
+    tmp = np.zeros_like(image[0, :, :, 0])
+    tmp[:processed_mask_aug.shape[0],
+    :processed_mask_aug.shape[1]] = processed_mask_aug
+    processed_mask_aug = tmp
+
+    # shift:
+    non = lambda s: s if s < 0 else None
+    mom = lambda s: np.max([0, s])
+
+    ox, oy = int(shiftX_rnd), int(shiftY_rnd)
+
+    shift_mask = np.zeros_like(processed_mask_aug)
+    shift_mask[mom(oy):non(oy), mom(ox):non(ox)] = \
+      processed_mask_aug[mom(-oy):non(-oy), mom(-ox):non(-ox)]
+
+    # dilation
+    dilate_structure = ndimage.generate_binary_structure(2, 2)
+    shift_mask = ndimage.binary_dilation(shift_mask,
+                                         dilate_structure).astype(
+      shift_mask.dtype)
+
+    if USE_NONLIN_T:
+      r = np.random.rand(5, 2) - 0.5
+      r = np.vstack((r[:, 0] * im_size[1] / 5, r[:, 1] * im_size[0] / 5))
+      r = r.transpose()
+      # control pointsfff
+      y = [im_size[0] / 4, im_size[0] / 4, im_size[0] / 2, im_size[0] * 3 / 4,
+           im_size[0] * 3 / 4]
+      x = [im_size[1] / 4, im_size[1] * 3 / 4, im_size[1] / 2, im_size[1] / 4,
+           im_size[1] * 3 / 4]
+      coords = {}
+      coords_r = {}
+      for xx, yy, rr, id in zip(x, y, r, range(5)):
+        coords[str(id)] = [xx, yy]
+        coords_r[str(id)] = [xx + rr[0], yy + rr[1]]
+
+      points1 = {}
+      points2 = {}
+      points1['points'] = coords
+      points2['points'] = coords_r
+      transformed_mask = self.nonlin_transform(shift_mask, points1, points2)
+    else:
+      transformed_mask = shift_mask
+
+    processed_mask = np.expand_dims(np.expand_dims(transformed_mask, axis=0),
+                                    axis=3)
+
+    return processed_mask
 
 class Custom(Operation):
     """
