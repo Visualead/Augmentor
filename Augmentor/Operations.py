@@ -1652,8 +1652,8 @@ class Dilate(Operation):
           binary_im = binary_im[:, :, 0] # reducing to a single channel
         dilated = ndimage.binary_dilation(binary_im,
                                           self.dilate_structure)
-        multi_channel = np.repeat(dilated[:, :, np.newaxis], 3, axis=2)
-        return Image.fromarray(np.uint8(255*multi_channel))
+        # multi_channel = np.repeat(dilated[:, :, np.newaxis], 3, axis=2)
+        return Image.fromarray(np.uint8(255)*dilated)
 
 class MSKOperationTemp(Operation):
 
