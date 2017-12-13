@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division,
 from builtins import *
 
 from .Operations import *
-from .ImageUtilities import scan_directory, scan, AugmentorImage
+from .ImageUtilities import scan_directory, scan, AugmentorImage, ImageReader
 
 import os
 import sys
@@ -28,6 +28,7 @@ import numpy as np
 
 from tqdm import tqdm
 from PIL import Image
+from helper_functions.image_reader import ImageReader
 
 
 class Pipeline(object):
@@ -153,7 +154,7 @@ class Pipeline(object):
         # TODO: Do not throw an error here, just remove the image and continue.
         for augmentor_image in self.augmentor_images:
             try:
-                with Image.open(augmentor_image.image_path) as opened_image:
+                with ImageReader.open(augmentor_image.image_path) as opened_image:
                     self.distinct_dimensions.add(opened_image.size)
                     self.distinct_formats.add(opened_image.format)
             except IOError:
@@ -189,7 +190,7 @@ class Pipeline(object):
         self.image_counter += 1  # TODO: See if I can remove this...
 
         if augmentor_image.image_path is not None:
-            image = Image.open(augmentor_image.image_path)
+            image = ImageReader.open(augmentor_image.image_path)
         else:
             image = augmentor_image.image_PIL
 

@@ -1648,8 +1648,13 @@ class Dilate(Operation):
         :return: a dilate image.
         """
         binary_im = np.asarray(image).astype('uint8') > 0
-        dilated = ndimage.binary_dilation(binary_im[:, :, 0],
-                                          self.dilate_structure)
+        if len(binary_im.shape)==3:
+            dilated = ndimage.binary_dilation(binary_im[:, :, 0],
+                                              self.dilate_structure)
+        else:
+            dilated = ndimage.binary_dilation(binary_im,
+                                              self.dilate_structure)
+
         multi_channel = np.repeat(dilated[:, :, np.newaxis], 3, axis=2)
         return Image.fromarray(np.uint8(255*multi_channel))
 
