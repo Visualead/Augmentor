@@ -37,6 +37,8 @@ class ImageReader:
             if(path.decode('utf8').split(".")[-1] == "mat"):
                 a = io.loadmat(path)
                 output = np.array( a["GTinst"][0][0][0] > 0, dtype=np.uint8 )
+                output = Image.fromarray(output).split()[0]
+
             else:
                 output = Image.open(path).split()[0]
 
