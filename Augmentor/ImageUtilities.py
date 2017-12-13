@@ -17,6 +17,31 @@ import random
 import warnings
 import numpy as np
 
+from PIL import Image
+from scipy import io
+
+class ImageReader:
+    def __init__(self):
+        """Initialize the Dataset Image. TBD
+        """
+
+    @staticmethod
+    def open(path, type = 'label'):
+        """open image or label image
+        :param path: file path to image/label
+        :return a PIL or np.array
+        """
+        if (type == 'image'):
+            output = Image.open(path)
+        if (type == 'label'):
+            if(path.decode('utf8').split(".")[-1] == "mat"):
+                a = io.loadmat(path)
+                output = np.array( a["GTinst"][0][0][0] > 0, dtype=np.uint8 )
+            else:
+                output = Image.open(path).split()[0]
+
+        return output
+    
 class AugmentorImage(object):
     """
     Wrapper class containing paths to images, as well as a number of other
