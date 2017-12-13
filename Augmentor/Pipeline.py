@@ -156,7 +156,7 @@ class Pipeline(object):
                 with ImageReader.open(augmentor_image.image_path) as opened_image:
                     self.distinct_dimensions.add(opened_image.size)
                     self.distinct_formats.add(opened_image.format)
-                    print(opened_image.size)
+                    #print(opened_image.size)
             except IOError:
                 print("There is a problem with image %s in your source directory. "
                       "It is unreadable and will not be included when augmenting."
