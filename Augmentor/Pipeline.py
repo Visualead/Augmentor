@@ -28,7 +28,6 @@ import numpy as np
 
 from tqdm import tqdm
 from PIL import Image
-from helper_functions.image_reader import ImageReader
 
 
 class Pipeline(object):
